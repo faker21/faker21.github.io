@@ -1,122 +1,99 @@
-let currentValue = 1;
-const timeout = 0.75;
-const radios = document.querySelectorAll('.swappy-radios input');
-const fakeRadios = document.querySelectorAll('.swappy-radios .radio');
+var 
+	yetiTL, chatterTL,
+    	furLightColor = "#FFF",
+    	furDarkColor = "#67b1e0",
+    	skinLightColor = "#ddf1fa",
+    	skinDarkColor = "#88c9f2",
+    	lettersSideLight = "#3A7199",
+    	lettersSideDark = "#051d2c",
+    	lettersFrontLight = "#67B1E0",
+    	lettersFrontDark = "#051d2c",
+    	lettersStrokeLight = "#265D85",
+    	lettersStrokeDark = "#031219",
+    	mouthShape1 = "M149 115.7c-4.6 3.7-6.6 9.8-5 15.6.1.5.3 1.1.5 1.6.6 1.5 2.4 2.3 3.9 1.7l11.2-4.4 11.2-4.4c1.5-.6 2.3-2.4 1.7-3.9-.2-.5-.4-1-.7-1.5-2.8-5.2-8.4-8.3-14.1-7.9-3.7.2-5.9 1.1-8.7 3.2z",
+    	mouthShape2 = "M161.2 118.9c0 2.2-1.8 4-4 4s-4-1.8-4-4c0-1 .4-2 1.1-2.7.7-.8 1.8-1.3 2.9-1.3 2.2 0 4 1.7 4 4z",
+    	mouthShape3 = "M150.2 118.3c-4.6 3.7-7.5 6.4-6.3 12.3.1.5.1.6.3 1.1.6 1.5 2.4 2.3 3.9 1.7 0 0 7.9-4.3 10.7-5.5s11.6-3.3 11.6-3.3c1.5-.6 2.3-2.4 1.7-3.9-.2-.5-.2-.6-.4-1.1-2.8-5.2-7.1-4.9-12.9-4.6-3.7.4-6.3 1.5-8.6 3.3z",
+    	mouthShape4 = "M149.2 116.7c-4.6 3.7-6.7 8.8-5.2 14.6.1.3.1.5.2.8.6 1.5 2.4 2.3 3.9 1.7l11.2-4.4 11.2-4.4c1.5-.6 2.3-2.4 1.7-3.9-.1-.3-.2-.5-.4-.7-2.8-5.2-8.2-7.2-14-6.9-3.6.2-5.9 1.1-8.6 3.2z"
+;
 
-//This next bit kinda sucks and could be improved.
-//For simplicity, I'm assuming that the distance between the first and second radios is indicative of the distance between all radios. This will fail if one of the options goes onto two lines.
-//I should really move each radio independantly depending on its own distance to its neighbour. Oh well ¯\_(ツ)_/¯
-//TODO ^^^
-const firstRadioY = document.querySelector('.swappy-radios label:nth-of-type(1) .radio').getBoundingClientRect().y;
-const secondRadioY = document.querySelector('.swappy-radios label:nth-of-type(2) .radio').getBoundingClientRect().y;
-const indicitiveDistance = secondRadioY - firstRadioY;
-//End suckyness :D
+chatterTL = new TimelineMax({paused: true, repeat: -1, yoyo: true});
+chatterTL
+	.to(['#mouthBG', '#mouthPath', '#mouthOutline'], .1, {morphSVG: mouthShape4}, "0")
+	//.to('#armR', .1, {x: 2, ease: Linear.easeNone}, "0")
+	.to('#chin', .1, {y: 1.5}, "0")
+;
 
-//Apply CSS delays in JS, so that if JS doesn't load, it doesn't delay selected radio colour change
-//I'm applying background style delay here so that it doesn't appear slow if JS is disabled/broken
-fakeRadios.forEach(function(radio) {
-  radio.style.cssText = `transition: background 0s ${timeout}s;`;
-});
-//Have to do this bit the long way (i.e. with a <style> element) becuase you can't do inline pseudo element syles
-const css = `.radio::after {transition: opacity 0s ${timeout}s;}`
-const head = document.head;
-const style = document.createElement('style');
-style.type = 'text/css';
-style.appendChild(document.createTextNode(css));
-head.appendChild(style);
-//End no-js animation fallbacks.
+yetiTL = new TimelineMax({paused: true, repeat: -1, repeatDelay: 0, delay: 0});
+yetiTL
+	.addCallback(function() {
+		chatterTL.play();	
+	}, "0")
+	
+	.to(['#armL', '#flashlightFront'], .075, {x: 7}, "2.5")
+	.to(['#armL', '#flashlightFront'], .075, {x: 0}, "2.575")
+	.to(['#armL', '#flashlightFront'], .075, {x: 7}, "2.65")
+	.to(['#armL', '#flashlightFront'], .075, {x: 0}, "2.725")
+	.to(['#armL', '#flashlightFront'], .075, {x: 7}, "2.8")
+	.to(['#armL', '#flashlightFront'], .075, {x: 0}, "2.875")
 
-radios.forEach(function(radio, i) {
-  //Add an attr to make finding and styling the correct element a lot easier
-  radio.parentElement.setAttribute('data-index', i + 1);
-  
-  //The meat: set up the change listener!
-  radio.addEventListener('change', function() {
-    //Stop weirdness of incomplete animation occuring. disable radios until complete.
-    temporarilyDisable();
+	.addCallback(goLight, "3.2")
+	.addCallback(goDark, "3.3")
+	.addCallback(goLight, "3.4")
 
-    //remove old style tag
-    removeStyles();
-    const nextValue = this.parentElement.dataset.index;
+	.addCallback(function() {
+		chatterTL.pause();
+		TweenMax.to(['#mouthBG', '#mouthPath', '#mouthOutline'], .1, {morphSVG: mouthShape1}, "0");
+	}, "3.2")
 
-    const oldRadio = document.querySelector(`[data-index="${currentValue}"] .radio`);
-    const newRadio = this.nextSibling;
-    const oldRect = oldRadio.getBoundingClientRect();
-    const newRect = newRadio.getBoundingClientRect();
+	.to(['#mouthBG', '#mouthPath', '#mouthOutline'], .25, {morphSVG: mouthShape2}, "5")
+	.to('#tooth1', .1, {y: -5}, "5")
+	.to('#armR', .5, {x: 10, y: 30, rotation: 10, transformOrigin: "bottom center", ease: Quad.easeOut}, "4")
+	.to(['#eyeL', '#eyeR'], .25, {scaleX: 1.4, scaleY: 1.4, transformOrigin: "center center"}, "5")
 
-    //Pixel distance between previous and newly-selected radios
-    const yDiff = Math.abs(oldRect.y - newRect.y);
-    
-    //Direction. Is the new option higher or lower than the old option?
-    const dirDown = oldRect.y - newRect.y > 0 ? true : false;
-    
-    //Figure out which unselected radios actually need to move 
-    //(we don't necessarily want to move them all)
-    const othersToMove = [];
-    const lowEnd = Math.min(currentValue, nextValue);
-    const highEnd = Math.max(currentValue, nextValue);
+	.addCallback(goDark, "8")
+	.addCallback(goLight, "8.1")
+	.addCallback(goDark, "8.3")
+	.addCallback(goLight, "8.4")
+	.addCallback(goDark, "8.6")
 
-    const inBetweenies = range(lowEnd, highEnd, dirDown);
-    let othersCss = '';
-    inBetweenies.map(option => {
-      //If there's more than one, add a subtle stagger effect
-      const staggerDelay = inBetweenies.length > 1 ? 0.1 / inBetweenies.length * option : 0;
-      othersCss += `
-        [data-index="${option}"] .radio {
-          animation: moveOthers ${timeout - staggerDelay}s ${staggerDelay}s;
-        }
-      `;
-    });
-    
-    const css = `
-      ${othersCss}
-      [data-index="${currentValue}"] .radio { 
-        animation: moveIt ${timeout}s; 
-      }
-      @keyframes moveIt {
-        0% { transform: translateX(0); }
-        33% { transform: translateX(-3rem) translateY(0); }
-        66% { transform: translateX(-3rem) translateY(${dirDown ? '-' : ''}${yDiff}px); }
-        100% { transform: translateX(0) translateY(${dirDown ? '-' : ''}${yDiff}px); }
-      }
-      @keyframes moveOthers {
-        0% { transform: translateY(0); }
-        33% { transform: translateY(0); }
-        66% { transform: translateY(${dirDown ? '' : '-'}${indicitiveDistance}px); }
-        100% { transform: translateY(${dirDown ? '' : '-'}${indicitiveDistance}px); }
-      }
-  `;
-    appendStyles(css);
-    currentValue = nextValue;
-  });
-});
+	.to(['#mouthBG', '#mouthPath', '#mouthOutline'], .25, {morphSVG: mouthShape1}, "9")
+	.to('#tooth1', .1, {y: 0}, "9")
+	.to('#armR', .5, {x: 0, y: 0, rotation: 0, transformOrigin: "bottom center", ease: Quad.easeOut}, "9")
+	.to(['#eyeL', '#eyeR'], .25, {scaleX: 1, scaleY: 1, transformOrigin: "center center"}, "9")
+	.addCallback(function() {
+		chatterTL.play();
+	}, "9.25")
 
-function appendStyles(css) {
-  const head = document.head;
-  const style = document.createElement('style');
-  style.type = 'text/css';
-  style.id = 'swappy-radio-styles'; 
-  style.appendChild(document.createTextNode(css));
-  head.appendChild(style);
+	.to(['#armL', '#flashlightFront'], .075, {x: 7}, "11.5")
+	.to(['#armL', '#flashlightFront'], .075, {x: 0}, "11.575")
+	.to(['#armL', '#flashlightFront'], .075, {x: 7}, "11.65")
+	.to(['#armL', '#flashlightFront'], .075, {x: 0}, "11.725")
+	.to(['#armL', '#flashlightFront'], .075, {x: 7}, "11.8")
+	.to(['#armL', '#flashlightFront'], .075, {x: 0}, "11.875")
+
+;
+
+function goDark() {
+	TweenMax.set('#light', {visibility: "hidden"});
+	
+	TweenMax.set('.lettersSide', {fill: lettersSideDark, stroke: lettersStrokeDark});
+	TweenMax.set('.lettersFront', {fill: lettersFrontDark, stroke: lettersStrokeDark});
+	TweenMax.set('#lettersShadow', {opacity: .05});
+	
+	TweenMax.set('.hlFur', {fill: furDarkColor});
+	TweenMax.set('.hlSkin', {fill: skinDarkColor});
 }
-function removeStyles() {
-  const node = document.getElementById('swappy-radio-styles');
-  if (node && node.parentNode) {
-    node.parentNode.removeChild(node);
-  }
+
+function goLight() {
+	TweenMax.set('#light', {visibility: "visible"});
+	
+	TweenMax.set('.lettersSide', {fill: lettersSideLight, stroke: lettersStrokeLight});
+	TweenMax.set('.lettersFront', {fill: lettersFrontLight, stroke: lettersStrokeLight});
+	TweenMax.set('#lettersShadow', {opacity: .2});
+	
+	TweenMax.set('.hlFur', {fill: furLightColor});
+	TweenMax.set('.hlSkin', {fill: skinLightColor});
 }
-function range(start, end, dirDown) {
-  let extra = 1;
-  if (dirDown) {
-      extra = 0;
-  }
-  return [...Array(end - start).keys()].map(v => start + v + extra);
-}
-function temporarilyDisable() {
-    radios.forEach((item) => {
-      item.setAttribute('disabled', true);
-      setTimeout(() => { 
-        item.removeAttribute('disabled');
-      }, timeout * 1000);
-    });
-}
+
+goDark();
+yetiTL.play();
