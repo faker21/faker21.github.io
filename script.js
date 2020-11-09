@@ -209,7 +209,7 @@ const FourOhFour = () => {
   return (
     React.createElement(AppShell, null,
     React.createElement(Container, null,
-    React.createElement(Message, { className: "return-link", href: "https://kline.ga", rel: "noreferrer noopener" }, "Return to happiness"),
+    React.createElement(Message, { className: "return-link", href: "https://404.kline.ga/offline", rel: "noreferrer noopener" }, "Return to happiness"),
 
 
     React.createElement(Logo, { className: "bear-logo--tears" }),
